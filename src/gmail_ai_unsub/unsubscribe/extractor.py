@@ -204,7 +204,15 @@ def extract_all_unsubscribe_links_from_html(html_content: str, email_id: str) ->
 
         # Find all <a> tags
         for link in soup.find_all("a", href=True):
-            href = link.get("href", "")
+            href_raw = link.get("href", "")
+            # BeautifulSoup can return href as string, list, or None
+            if isinstance(href_raw, list):
+                href = str(href_raw[0]) if href_raw else ""
+            elif href_raw is None:
+                href = ""
+            else:
+                href = str(href_raw)
+
             link_text = link.get_text(strip=True).lower()
 
             # Check if href or link text contains unsubscribe keywords

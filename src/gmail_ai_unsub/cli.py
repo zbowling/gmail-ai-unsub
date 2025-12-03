@@ -1,6 +1,7 @@
 """Command-line interface for gmail-ai-unsub."""
 
 from datetime import datetime, timedelta
+from typing import Literal, cast
 
 import click
 from dotenv import load_dotenv
@@ -106,7 +107,7 @@ def scan(
 
         # Create classifier
         classifier = create_classifier(
-            provider=cfg.llm_provider,
+            provider=cast(Literal["google", "anthropic", "openai"], cfg.llm_provider),
             model=cfg.llm_model,
             api_key=cfg.llm_api_key,
             system_prompt=cfg.prompt_system,

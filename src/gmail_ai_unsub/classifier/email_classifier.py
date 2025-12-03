@@ -1,6 +1,6 @@
 """Email classification using LangChain and LLMs."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
@@ -119,6 +119,8 @@ Email to classify:
         structured_llm = self.llm.with_structured_output(ClassificationResult)
         result = await structured_llm.ainvoke(messages)
 
+        # Type narrowing: with_structured_output returns ClassificationResult
+        assert isinstance(result, ClassificationResult)
         return result
 
     def classify_sync(self, subject: str, from_address: str, body: str) -> ClassificationResult:
@@ -148,6 +150,8 @@ Email to classify:
         structured_llm = self.llm.with_structured_output(ClassificationResult)
         result = structured_llm.invoke(messages)
 
+        # Type narrowing: with_structured_output returns ClassificationResult
+        assert isinstance(result, ClassificationResult)
         return result
 
 
@@ -185,7 +189,7 @@ def create_classifier(
     """
     if provider == "google":
         # Build kwargs for Gemini
-        gemini_kwargs: dict[str, any] = {
+        gemini_kwargs: dict[str, Any] = {
             "model": model,
             "google_api_key": api_key,
         }
@@ -206,10 +210,10 @@ def create_classifier(
             gemini_kwargs["thinking_budget"] = 16384
         # None means disabled (fastest, no thinking tokens)
 
-        llm = ChatGoogleGenerativeAI(**gemini_kwargs)
+        llm: BaseChatModel = ChatGoogleGenerativeAI(**gemini_kwargs)
 
     elif provider == "anthropic":
-        anthropic_kwargs: dict[str, any] = {
+        anthropic_kwargs: dict[str, Any] = {
             "model": model,
             "anthropic_api_key": api_key,
         }
@@ -224,7 +228,7 @@ def create_classifier(
     elif provider == "openai":
         from langchain_openai import ChatOpenAI
 
-        openai_kwargs: dict[str, any] = {
+        openai_kwargs: dict[str, Any] = {
             "model": model,
             "openai_api_key": api_key,
         }

@@ -244,7 +244,7 @@ def prompt_section(
 
     print_section_header(section)
 
-    values = {}
+    values: dict[str, Any] = {}
     for field in section.fields:
         value = prompt_field(field, {**current_values, **values})
         if value is not None:

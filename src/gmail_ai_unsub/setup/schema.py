@@ -26,7 +26,7 @@ class FieldType(Enum):
 class Choice:
     """A choice option for select fields."""
 
-    value: str
+    value: str | None
     label: str
     description: str | None = None
     # Nested fields to show when this choice is selected

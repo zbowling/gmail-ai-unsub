@@ -43,7 +43,7 @@ class Config:
 
     def _get(self, *keys: str, default: Any = None) -> Any:
         """Get nested config value using dot notation."""
-        value = self._data
+        value: Any = self._data
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)

@@ -158,7 +158,7 @@ async def unsubscribe_via_browser(
         )
 
         # Create browser agent with task
-        agent = Agent(
+        agent: Agent = Agent(
             task=f"""Navigate to {url} and unsubscribe from this mailing list.
 
 CRITICAL RULES:
@@ -274,7 +274,11 @@ The goal is to unsubscribe from ALL emails from this sender, not just specific c
     finally:
         if browser:
             try:
-                await browser.close()
+                # Browser object may be a context manager or have different cleanup
+                if hasattr(browser, "close"):
+                    await browser.close()
+                elif hasattr(browser, "__aexit__"):
+                    await browser.__aexit__(None, None, None)
             except Exception:
                 pass
 

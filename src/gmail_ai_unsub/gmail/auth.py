@@ -106,6 +106,10 @@ def get_credentials(
 ) -> Credentials:
     """Get valid OAuth2 credentials for Gmail API.
 
+    Raises:
+        FileNotFoundError: If credentials file is not found
+        ValueError: If credentials are invalid or OAuth flow fails
+
     Args:
         credentials_file: Path to OAuth2 client credentials JSON file.
             If None and use_default_credentials is True, uses embedded credentials.
@@ -158,6 +162,8 @@ def get_credentials(
         with open(token_path, "w", encoding="utf-8") as token:
             token.write(creds.to_json())
 
+    if creds is None:
+        raise ValueError("Failed to obtain credentials")
     return creds
 
 

@@ -279,14 +279,21 @@ uv run pytest tests/ -v
 
 #### Type Checking
 
-The project also uses `mypy` for static type checking:
+The project uses both `mypy` and `ty` for static type checking:
 
 ```bash
-# Run type checker
+# Run mypy type checker
 uv run mypy src/
+
+# Run ty type checker (faster, written in Rust)
+uvx ty check src/
 ```
 
-Note: Some third-party libraries (like `googleapiclient`) don't have type stubs and are configured to be ignored in `pyproject.toml`.
+**Why both?**
+- `mypy`: Comprehensive type checking with extensive plugin ecosystem
+- `ty`: Extremely fast type checker that catches different classes of errors, written in Rust
+
+Both are run in CI to ensure maximum type safety. Some third-party libraries (like `googleapiclient`) don't have type stubs and are configured to be ignored in `pyproject.toml`.
 
 ### Future Enhancements
 

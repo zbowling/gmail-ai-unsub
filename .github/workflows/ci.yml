@@ -38,6 +38,9 @@ jobs:
       - name: Type check with mypy
         run: uv run mypy src/
 
+      - name: Type check with ty
+        run: uvx ty check src/
+
       - name: Run tests
         run: uv run pytest tests/ -v
 
