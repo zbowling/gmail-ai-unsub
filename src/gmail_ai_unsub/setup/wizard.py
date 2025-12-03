@@ -327,7 +327,7 @@ def generate_toml(values: dict[str, Any], paths: dict[str, str]) -> str:
         for field_name, value in sections[section_name].items():
             if isinstance(value, bool):
                 lines.append(f"{field_name} = {str(value).lower()}")
-            elif isinstance(value, (int, float)):
+            elif isinstance(value, int | float):
                 lines.append(f"{field_name} = {value}")
             elif isinstance(value, str):
                 # Escape quotes in strings

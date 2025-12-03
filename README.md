@@ -275,7 +275,7 @@ Key configuration sections:
 
 ## How It Works
 
-1. **Scanning Phase**: 
+1. **Scanning Phase**:
    - Fetches emails from your Gmail inbox
    - Sends email content to an LLM for classification
    - Labels emails identified as marketing
@@ -289,14 +289,14 @@ Key configuration sections:
 
 ## Supported LLM Providers
 
-- **Google Gemini**: 
+- **Google Gemini**:
   - `gemini-3-pro-preview` (latest, Nov 2025, use with `thinking_level=high` or `low` based on speed needs)
   - `gemini-2.5-computer-use` (for browser automation, though gemini-3-pro often better)
   - Note: Gemini 2.0 models are not recommended
-- **Anthropic Claude**: 
+- **Anthropic Claude**:
   - `claude-4-5-sonnet-20250514` (latest Claude 4.5 series)
   - `claude-4-opus-20250514` (most capable)
-- **OpenAI**: 
+- **OpenAI**:
   - `gpt-5` (latest flagship, Aug 2025, PhD-level performance)
   - `gpt-5-mini` (faster variant)
   - `gpt-4.1` (improved coding, 1M token context)
@@ -323,7 +323,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
-Contributions welcome! 
+Contributions welcome!
 
 - For development setup, see [Developer Setup](#developer-setup)
 - For releasing to PyPI, see [docs/releasing.md](docs/releasing.md)
@@ -339,4 +339,3 @@ Built with:
 - [LangChain](https://github.com/langchain-ai/langchain) for LLM integration
 - [browser-use](https://github.com/browser-use/browser-use) for browser automation
 - [Gmail API](https://developers.google.com/gmail/api) for email access
-

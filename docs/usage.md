@@ -244,4 +244,3 @@ gmail-unsub unsubscribe
 - **OAuth Tokens**: Keep token files secure
 - **State File**: Contains email IDs and unsubscribe links (sensitive)
 - **Browser Automation**: Runs locally, no data sent externally
-

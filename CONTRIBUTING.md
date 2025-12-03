@@ -123,10 +123,10 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/zbowli
    ```bash
    # Install uv if you haven't already
    curl -LsSf https://astral.sh/uv/install.sh | sh
-   
+
    # Install dependencies
    uv sync --all-extras
-   
+
    # Install playwright browsers
    uv run playwright install --with-deps chromium
    ```
@@ -176,7 +176,8 @@ Just open a Pull Request with your improvements.
 
 - Follow PEP 8 style guidelines
 - Use `ruff` for linting and formatting (see `pyproject.toml` for configuration)
-- Run `uv run ruff check --fix .` and `uv run ruff format .` before committing
+- **Pre-commit hooks are configured** - run `uv run pre-commit install` after `uv sync --all-extras`
+- Pre-commit will automatically run checks before each commit
 - Use type hints for all function signatures
 - Keep functions focused and small
 - Write docstrings for all public functions and classes
@@ -214,4 +215,3 @@ If you're interested in becoming a maintainer, please reach out to zac@zacbowlin
 ## Attribution
 
 This guide is based on the [contributing.md](https://contributing.md/generator) template!
-

@@ -147,4 +147,3 @@ After a successful release:
    ```
 3. **Update documentation** if needed
 4. **Announce the release** (GitHub release notes, etc.)
-

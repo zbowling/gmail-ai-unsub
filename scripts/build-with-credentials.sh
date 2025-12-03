@@ -29,4 +29,3 @@ uv build
 echo ""
 echo "✓ Build complete! Wheel is in dist/"
 echo "  Note: Credentials are now in the source. Consider reverting before committing."
-

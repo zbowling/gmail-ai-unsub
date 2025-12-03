@@ -384,13 +384,13 @@ API keys can be provided in two ways:
    ```bash
    # For Gemini
    export GOOGLE_API_KEY=your_key_here
-   
+
    # For Claude
    export ANTHROPIC_API_KEY=your_key_here
-   
+
    # For OpenAI
    export OPENAI_API_KEY=your_key_here
-   
+
    # For Browser-Use
    export BROWSER_USE_API_KEY=your_key_here
    ```
@@ -419,4 +419,3 @@ gmail-unsub scan --config config.dev.toml
 # Production config
 gmail-unsub scan --config config.prod.toml
 ```
-

@@ -27,7 +27,7 @@ This app supports multiple ways to provide credentials:
    # Using python-dotenv (optional)
    pip install python-dotenv
    export $(cat .env | xargs)
-   
+
    # Or manually
    source .env  # if your shell supports it
    ```
@@ -115,4 +115,3 @@ This avoids the unverified app warning but requires more setup.
 - [Google OAuth for Native Apps](https://developers.google.com/identity/protocols/oauth2/native-app)
 - [OAuth 2.0 for Mobile & Desktop Apps](https://oauth.net/2/native-apps/)
 - [PKCE RFC 7636](https://tools.ietf.org/html/rfc7636)
-

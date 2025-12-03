@@ -46,4 +46,3 @@ fi
 echo ""
 echo "✓ All secrets set! You can verify with:"
 echo "  gh secret list"
-

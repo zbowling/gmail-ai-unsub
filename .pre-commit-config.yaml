@@ -1,0 +1,89 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com for more information
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+
+  # GitHub Actions workflow linting
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.9
+    hooks:
+      - id: actionlint-docker
+        args: ['-color']
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+      # Run the formatter
+      - id: ruff-format
+
+  # Type checking with mypy
+  # Note: mypy is slow and requires full project dependencies
+  # We run it in CI, but skip in pre-commit for speed
+  # Uncomment if you want to run it locally (requires: uv sync --all-extras)
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.11.2
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [
+  #         types-requests,
+  #       ]
+  #       args: [--config-file=pyproject.toml]
+  #       files: ^src/
+
+  # Type checking with ty (via local hook)
+  # Note: These are slower checks, run in CI but skip in pre-commit for speed
+  # Uncomment if you want to run them locally
+  # - repo: local
+  #   hooks:
+  #     - id: ty
+  #       name: ty type checker
+  #       entry: uvx ty check
+  #       language: system
+  #       types: [python]
+  #       files: ^src/
+  #       pass_filenames: false
+  #       always_run: true
+  #       args: [src/]
+
+  # Type checking with pyrefly (via local hook)
+  # - repo: local
+  #   hooks:
+  #     - id: pyrefly
+  #       name: pyrefly type checker
+  #       entry: uvx pyrefly check
+  #       language: system
+  #       types: [python]
+  #       files: ^src/
+  #       pass_filenames: false
+  #       always_run: true
+  #       args: [--summarize-errors]
+
+  # Run tests
+  # Note: Tests are run in CI, but can be enabled here for pre-commit
+  # - repo: local
+  #   hooks:
+  #     - id: pytest
+  #       name: pytest
+  #       entry: uv run pytest
+  #       language: system
+  #       types: [python]
+  #       files: ^(src/|tests/)
+  #       pass_filenames: false
+  #       always_run: true
+  #       args: [tests/, -v]

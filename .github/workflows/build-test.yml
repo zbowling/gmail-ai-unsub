@@ -54,4 +54,3 @@ jobs:
         if: always()
         run: |
           git checkout src/gmail_ai_unsub/gmail/auth.py || true
-

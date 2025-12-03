@@ -232,11 +232,32 @@ configuring consent screen, and adding test users.
 
 ### Code Quality and Linting
 
-**Always run ruff before committing code changes!**
+**The project uses pre-commit hooks to automatically run checks before each commit!**
 
-The project uses `ruff` for both linting and formatting. It's fast and catches many issues early.
+The project uses `ruff` for both linting and formatting, plus additional checks via pre-commit hooks. Pre-commit is configured to run the same checks as CI (except for slower type checkers and tests).
 
-#### Quick Checks
+#### Pre-commit Setup
+
+Pre-commit hooks are automatically installed when you run:
+
+```bash
+uv sync --all-extras
+uv run pre-commit install
+```
+
+After installation, pre-commit will automatically run checks on every commit. You can also run checks manually:
+
+```bash
+# Run pre-commit on all files
+uv run pre-commit run --all-files
+
+# Run pre-commit on staged files only (default on commit)
+uv run pre-commit run
+```
+
+#### Quick Checks (Manual)
+
+If you want to run checks manually without pre-commit:
 
 ```bash
 # Check for linting issues
@@ -254,20 +275,14 @@ uv run ruff format .
 
 #### Before Committing
 
-Always run these commands before committing:
+Pre-commit hooks will automatically:
+- Fix trailing whitespace and end-of-file issues
+- Check YAML, TOML, and JSON syntax
+- Lint GitHub Actions workflows (actionlint)
+- Run ruff linting (with auto-fix)
+- Run ruff formatting
 
-```bash
-# Fix any auto-fixable issues and format code
-uv run ruff check --fix .
-uv run ruff format .
-
-# Verify everything passes
-uv run ruff check .
-uv run ruff format --check .
-
-# Run tests to ensure nothing broke
-uv run pytest tests/ -v
-```
+For slower checks (mypy, ty, pyrefly, pytest), these are run in CI. You can enable them in `.pre-commit-config.yaml` if desired.
 
 #### Common Ruff Issues
 
@@ -360,4 +375,3 @@ This allows:
 - Resuming interrupted unsubscribe operations
 - Debugging failed attempts
 - Auditing unsubscribe history
-

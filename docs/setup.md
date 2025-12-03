@@ -41,7 +41,7 @@ This will:
 2. Authenticate with Gmail (opens a browser window)
 3. Set up the necessary directories
 
-**OAuth Credentials**: The tool includes embedded OAuth credentials for easy setup, so you don't need to create your own Google Cloud project for basic usage. However, you will see an "unverified app" warning during authentication. 
+**OAuth Credentials**: The tool includes embedded OAuth credentials for easy setup, so you don't need to create your own Google Cloud project for basic usage. However, you will see an "unverified app" warning during authentication.
 
 For production use or to avoid the warning, see [Advanced: Using Your Own OAuth Credentials](#advanced-using-your-own-oauth-credentials) below to create your own OAuth app.
 
@@ -336,4 +336,3 @@ export GOOGLE_API_KEY=your_key_here
 - Read [Configuration Guide](configuration.md) for advanced options
 - See [Usage Examples](usage.md) for common workflows
 - Customize prompts in `config.toml` to match your email preferences
-
