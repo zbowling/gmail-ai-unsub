@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-12-03
+
+### Fixed
+
+- Fixed shellcheck errors in GitHub Actions workflow files (proper variable quoting)
+- Fixed ruff formatting issues in CLI code
+- Removed unused type ignore comments flagged by mypy
+- Added type ignore comments for pyrefly on dynamically added OAuth methods
+- Configured mypy to allow type ignores needed by pyrefly
+- Removed invalid pyrefly config key that caused warnings
+- All CI checks now passing successfully
+
+### Changed
+
+- Enabled mypy and ty type checking in pre-commit hooks
+- Improved pre-commit hook configuration for better developer experience
+
 ## [0.1.0] - 2025-12-02
 
 ### Added
@@ -40,5 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Conventional commits standard
 - Unit tests with pytest
 
-[Unreleased]: https://github.com/zbowling/gmail-ai-unsub/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/zbowling/gmail-ai-unsub/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/zbowling/gmail-ai-unsub/releases/tag/v0.1.1
 [0.1.0]: https://github.com/zbowling/gmail-ai-unsub/releases/tag/v0.1.0
