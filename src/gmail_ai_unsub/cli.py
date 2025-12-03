@@ -418,7 +418,9 @@ def scan(
 
                 console.print()
                 console.print(
-                    Panel(timing_table, title="[bold]Performance Timing[/bold]", border_style="yellow")
+                    Panel(
+                        timing_table, title="[bold]Performance Timing[/bold]", border_style="yellow"
+                    )
                 )
 
         if total_marketing > 0:
