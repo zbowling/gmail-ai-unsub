@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-04
+
 ### Added
 
 - **Function calling tools for email classification**: LLM can now request additional email information:
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed format errors when email body contains curly braces (JSON, URLs, code) by using direct Message objects instead of ChatPromptTemplate
 - Fixed false negative in browser automation when user is already unsubscribed (now correctly detected as success)
 - Fixed prompt structure to optimize for prompt prefix caching (static content first)
+- Fixed hierarchical label handling in unsubscribe command (now properly quotes labels with slashes like "Parent/Child")
 
 ## [0.1.1] - 2025-12-03
 
@@ -81,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Conventional commits standard
 - Unit tests with pytest
 
-[Unreleased]: https://github.com/zbowling/gmail-ai-unsub/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/zbowling/gmail-ai-unsub/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/zbowling/gmail-ai-unsub/releases/tag/v0.2.0
 [0.1.1]: https://github.com/zbowling/gmail-ai-unsub/releases/tag/v0.1.1
 [0.1.0]: https://github.com/zbowling/gmail-ai-unsub/releases/tag/v0.1.0

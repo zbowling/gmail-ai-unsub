@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "gmail-ai-unsub"
-version = "0.1.1"
+version = "0.2.0"
 description = "AI-powered tool to identify and unsubscribe from marketing emails in Gmail"
 readme = "README.md"
 requires-python = ">=3.12"
