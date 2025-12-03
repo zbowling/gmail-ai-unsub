@@ -372,10 +372,11 @@ Based on the above information, classify this email. Use tools only if you need 
                         start = max(0, i - context_lines)
                         end = min(len(body_lines), i + context_lines + 1)
 
-                        context_block = []
+                        context_block: list[str] = []
                         for j in range(start, end):
                             prefix = ">>> " if j == i else "    "
-                            context_block.append(f"{prefix}L{j + 1}: {body_lines[j]}")
+                            line_text = f"{prefix}L{j + 1}: {body_lines[j]}"
+                            context_block.append(line_text)
                             seen_lines.add(j)
 
                         matches.append(f"Match for '{term}':\n" + "\n".join(context_block))
@@ -404,9 +405,10 @@ Based on the above information, classify this email. Use tools only if you need 
             if start_idx >= len(body_lines):
                 return f"Start line {start_line} is beyond the email body ({len(body_lines)} lines total)."
 
-            chunk_lines = []
+            chunk_lines: list[str] = []
             for i in range(start_idx, end_idx):
-                chunk_lines.append(f"L{i + 1}: {body_lines[i]}")
+                line_text = f"L{i + 1}: {body_lines[i]}"
+                chunk_lines.append(line_text)
 
             result = "\n".join(chunk_lines)
             if end_idx < len(body_lines):
@@ -589,7 +591,10 @@ Based on the above information, classify this email. Use tools only if you need 
 
         # Handle tool calling loop (max 3 iterations)
         max_iterations = 3
-        current_messages = messages
+        # Type: list of BaseMessage (can include AIMessage, HumanMessage, SystemMessage, ToolMessage)
+        from langchain_core.messages import BaseMessage
+
+        current_messages: list[BaseMessage] = list(messages)
 
         for _ in range(max_iterations):
             response = await llm_with_tools.ainvoke(current_messages)
@@ -668,7 +673,10 @@ Based on the above information, classify this email. Use tools only if you need 
 
         # Handle tool calling loop (max 3 iterations)
         max_iterations = 3
-        current_messages = messages
+        # Type: list of BaseMessage (can include AIMessage, HumanMessage, SystemMessage, ToolMessage)
+        from langchain_core.messages import BaseMessage
+
+        current_messages: list[BaseMessage] = list(messages)
 
         for _ in range(max_iterations):
             response = llm_with_tools.invoke(current_messages)
