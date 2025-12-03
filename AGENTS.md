@@ -151,7 +151,7 @@ The tool supports multiple providers through LangChain:
 
 - **Unit Tests**: Mock Gmail API and LLM responses
 - **Integration Tests**: Test with real Gmail API (requires credentials)
-- **CI**: Runs linting (ruff), type checking (mypy), and tests (pytest)
+- **CI**: Runs linting (ruff), type checking (mypy, ty, pyrefly), workflow linting (actionlint), and tests (pytest)
 
 ### Commit Message Standards
 
