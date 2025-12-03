@@ -238,7 +238,26 @@ The goal is to unsubscribe from ALL emails from this sender, not just specific c
                                 if verdict is True:
                                     success = True
 
+                        # Get final message content
                         final_message = getattr(action_result, "extracted_content", None)
+                        if not final_message:
+                            # Try to get text from the action result
+                            final_message = getattr(action_result, "text", None)
+
+                        # Check message content for success indicators
+                        if final_message:
+                            msg_lower = str(final_message).lower()
+                            success_phrases = [
+                                "already unsubscribed",
+                                "successfully unsubscribed",
+                                "unsubscribed",
+                                "task completed successfully",
+                                "no further action is needed",
+                                "you have been unsubscribed",
+                            ]
+                            if any(phrase in msg_lower for phrase in success_phrases):
+                                success = True
+
                         break
 
             # Also check for direct success attribute on result
@@ -246,15 +265,25 @@ The goal is to unsubscribe from ALL emails from this sender, not just specific c
                 result_success = getattr(result, "success", None)
                 if result_success is True:
                     success = True
+                    # Try to get message from result
+                    if not final_message:
+                        final_message = getattr(result, "text", None) or str(result)
 
             # Fallback: Check if result string contains success indicators
             if not success:
                 result_str = str(result)
-                if (
-                    "Task completed successfully" in result_str
-                    or "successfully unsubscribed" in result_str.lower()
-                ):
+                result_lower = result_str.lower()
+                success_phrases = [
+                    "task completed successfully",
+                    "successfully unsubscribed",
+                    "already unsubscribed",
+                    "unsubscribed",
+                    "no further action is needed",
+                ]
+                if any(phrase in result_lower for phrase in success_phrases):
                     success = True
+                    if not final_message:
+                        final_message = result_str
 
         if success:
             return (True, final_message)
@@ -266,6 +295,12 @@ The goal is to unsubscribe from ALL emails from this sender, not just specific c
                     if getattr(action_result, "error", None):
                         error_msg = f"Browser error: {action_result.error}"
                         break
+                    # Also check if there's a message that might indicate what happened
+                    msg = getattr(action_result, "extracted_content", None) or getattr(
+                        action_result, "text", None
+                    )
+                    if msg and not success:
+                        error_msg = f"Browser automation did not complete successfully: {msg}"
             return (False, error_msg)
 
     except Exception as e:

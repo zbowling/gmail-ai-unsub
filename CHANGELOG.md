@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Function calling tools for email classification**: LLM can now request additional email information:
+  - `get_headers()`: Get multiple email headers by name (batch operation)
+  - `search_body()`: Grep-like search for terms in email body (token-efficient)
+  - `read_body_chunk()`: Read specific sections by line number
+  - `get_body_stats()`: Get email structure statistics
+- **Pre-analysis of email content**: Automated scanning provides unsubscribe links, promotional language, and transactional signals upfront to reduce tool calls
+- **Debug mode for tool calls**: `--debug` flag shows all tool calls made during classification with arguments and results
+- **Classification reasons in scan output**: Both marketing and non-marketing emails now display the LLM's reasoning
+- **Known issues documentation**: README now lists problematic unsubscribe domains with workarounds
+
+### Changed
+
+- **Optimized prompt structure for caching**: Static content (tools, rules) moved to system message; variable content (criteria, email) in human message for better prompt prefix caching
+- **Improved browser automation success detection**: Better handling of "already unsubscribed" messages and other success indicators
+- **Enhanced email classification prompt**: Includes more email headers (To, Reply-To, Sender, List-* headers) and emphasizes user preferences
+
+### Fixed
+
+- Fixed format errors when email body contains curly braces (JSON, URLs, code) by using direct Message objects instead of ChatPromptTemplate
+- Fixed false negative in browser automation when user is already unsubscribed (now correctly detected as success)
+- Fixed prompt structure to optimize for prompt prefix caching (static content first)
+
 ## [0.1.1] - 2025-12-03
 
 ### Fixed

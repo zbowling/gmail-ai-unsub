@@ -47,6 +47,57 @@ def extract_email_address(from_header: str) -> str:
     return from_header.strip()
 
 
+def extract_email_headers(headers: list[dict[str, str]]) -> dict[str, str]:
+    """Extract relevant email headers for classification.
+
+    Returns:
+        Dictionary with keys: subject, from, to, reply_to, sender,
+        list_unsubscribe, list_unsubscribe_post, list_headers
+    """
+    result: dict[str, str] = {
+        "subject": "",
+        "from": "",
+        "to": "",
+        "reply_to": "",
+        "sender": "",
+        "list_unsubscribe": "",
+        "list_unsubscribe_post": "",
+        "list_headers": "",
+    }
+
+    list_headers_list: list[str] = []
+
+    for header in headers:
+        name = header.get("name", "")
+        value = header.get("value", "")
+        name_lower = name.lower()
+
+        if name_lower == "subject":
+            result["subject"] = value
+        elif name_lower == "from":
+            result["from"] = value
+        elif name_lower == "to":
+            result["to"] = value
+        elif name_lower == "reply-to":
+            result["reply_to"] = value
+        elif name_lower == "sender":
+            result["sender"] = value
+        elif name_lower == "list-unsubscribe":
+            result["list_unsubscribe"] = value
+        elif name_lower == "list-unsubscribe-post":
+            result["list_unsubscribe_post"] = value
+        elif name_lower.startswith("list-") and name_lower not in (
+            "list-unsubscribe",
+            "list-unsubscribe-post",
+        ):
+            list_headers_list.append(f"{name}: {value}")
+
+    if list_headers_list:
+        result["list_headers"] = "\n".join(list_headers_list)
+
+    return result
+
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -118,6 +169,15 @@ def scan(
         failed_label = cfg.label_failed
         marketing_label_id = client.labels.get_or_create_label(marketing_label)
 
+        # Create debug callback for tool calls if in debug mode
+        def debug_tool_callback(tool_name: str, tool_args: dict, result: str) -> None:
+            """Log tool calls in debug mode."""
+            console.print(f"\n[dim cyan]🔧 Tool Call: {tool_name}[/dim cyan]")
+            console.print(f"[dim]   Args: {tool_args}[/dim]")
+            # Truncate long results
+            result_preview = result[:500] + "..." if len(result) > 500 else result
+            console.print(f"[dim]   Result: {result_preview}[/dim]")
+
         # Create classifier
         classifier = create_classifier(
             provider=cast(Literal["google", "anthropic", "openai"], cfg.llm_provider),
@@ -130,6 +190,7 @@ def scan(
             thinking_level=cfg.llm_thinking_level,
             max_tokens=cfg.llm_max_tokens,
             user_preferences=cfg.prompt_user_preferences,
+            debug_callback=debug_tool_callback if debug else None,
         )
 
         # Build query for emails in the specified time range
@@ -236,16 +297,9 @@ def scan(
 
                     # Extract headers
                     headers = message_meta.get("payload", {}).get("headers", [])
-                    subject = ""
-                    from_address = ""
-
-                    for header in headers:
-                        name = header.get("name", "").lower()
-                        value = header.get("value", "")
-                        if name == "subject":
-                            subject = value
-                        elif name == "from":
-                            from_address = value
+                    email_headers = extract_email_headers(headers)
+                    subject = email_headers["subject"]
+                    from_address = email_headers["from"]
 
                     # Build display info
                     gmail_url = get_gmail_url(message_id)
@@ -274,9 +328,24 @@ def scan(
                         with timer.time("email.parse_body"):
                             body, _ = parse_email_body(message_full)
 
-                        # Classify email
+                        # Get all headers for function calling
+                        all_headers_list = message_full.get("payload", {}).get("headers", [])
+
+                        # Classify email with all headers and function calling support
                         with timer.time("llm.classify"):
-                            result_class = classifier.classify_sync(subject, from_address, body)
+                            result_class = classifier.classify_sync(
+                                subject=subject,
+                                from_address=from_address,
+                                body=body,
+                                to_address=email_headers["to"],
+                                reply_to=email_headers["reply_to"],
+                                sender=email_headers["sender"],
+                                list_unsubscribe=email_headers["list_unsubscribe"],
+                                list_unsubscribe_post=email_headers["list_unsubscribe_post"],
+                                list_headers=email_headers["list_headers"],
+                                all_headers=all_headers_list,
+                                full_body=body,
+                            )
 
                     # Display result
                     if result_class.is_marketing:
@@ -304,6 +373,17 @@ def scan(
                         detail_text.append(gmail_url, style="dim underline link " + gmail_url)
                         console.print(detail_text)
 
+                        # Third line with reason
+                        if result_class.reason:
+                            reason_text = Text()
+                            reason_text.append("       ", style="dim")
+                            reason_text.append("Reason: ", style="dim yellow")
+                            reason_text.append(
+                                truncate_text(result_class.reason, term_width - 15),
+                                style="dim",
+                            )
+                            console.print(reason_text)
+
                         # Extract unsubscribe link if available
                         with timer.time("extract.unsubscribe_header"):
                             unsubscribe_link = extract_list_unsubscribe_header(message_meta)
@@ -329,6 +409,17 @@ def scan(
                         detail_text.append("  Not marketing ", style="dim")
                         detail_text.append(f"({result_class.confidence:.0%})", style="dim")
                         console.print(detail_text)
+
+                        # Show reason for non-marketing too (helps understand decisions)
+                        if result_class.reason:
+                            reason_text = Text()
+                            reason_text.append("       ", style="dim")
+                            reason_text.append("Reason: ", style="dim")
+                            reason_text.append(
+                                truncate_text(result_class.reason, term_width - 15),
+                                style="dim",
+                            )
+                            console.print(reason_text)
 
                     # Cache the result (commits immediately to survive Ctrl+C)
                     with timer.time("cache.mark_analyzed"):
@@ -484,8 +575,16 @@ def unsubscribe(label: str | None, headless: bool | None, yes: bool, config: str
         unsubscribed_label_id = client.labels.get_or_create_label(cfg.label_unsubscribed)
         failed_label_id = client.labels.get_or_create_label(cfg.label_failed)
 
+        # Build label query - use same escaping as scan command for hierarchical labels
+        def escape_label_for_query(label_name: str) -> str:
+            """Escape label name for Gmail query."""
+            # Gmail labels with spaces or special chars should be quoted
+            if " " in label_name or "/" in label_name:
+                return f'"{label_name}"'
+            return label_name
+
         # Get all emails with the marketing label
-        query = f"label:{marketing_label.replace('/', '-')}"
+        query = f"label:{escape_label_for_query(marketing_label)}"
 
         console.print()
         console.print(f"[bold]Finding emails with label:[/bold] [cyan]{marketing_label}[/cyan]")
@@ -1057,21 +1156,30 @@ def debug_classify(message_id: str, config: str | None) -> None:
 
         # Extract headers
         headers = message.get("payload", {}).get("headers", [])
-        subject = ""
-        from_address = ""
-
-        for header in headers:
-            name = header.get("name", "").lower()
-            value = header.get("value", "")
-            if name == "subject":
-                subject = value
-            elif name == "from":
-                from_address = value
+        email_headers = extract_email_headers(headers)
+        subject = email_headers["subject"]
+        from_address = email_headers["from"]
 
         # Parse body
         body, _ = parse_email_body(message)
 
-        # Create classifier
+        # Get all headers for function calling
+        all_headers_list = message.get("payload", {}).get("headers", [])
+
+        # Debug callback - always enabled for debug classify command
+        def debug_tool_callback(tool_name: str, tool_args: dict, result: str) -> None:
+            """Log tool calls."""
+            console.print(f"\n[bold cyan]🔧 Tool Call: {tool_name}[/bold cyan]")
+            console.print(f"[dim]   Args: {tool_args}[/dim]")
+            # Show full result for debug command
+            if len(result) > 1000:
+                console.print(f"[dim]   Result ({len(result)} chars):[/dim]")
+                console.print(Panel(result[:1000] + "...", title="Result (truncated)"))
+            else:
+                console.print("[dim]   Result:[/dim]")
+                console.print(Panel(result, title="Result"))
+
+        # Create classifier with debug callback
         classifier = create_classifier(
             provider=cast(Literal["google", "anthropic", "openai"], cfg.llm_provider),
             model=cfg.llm_model,
@@ -1083,6 +1191,7 @@ def debug_classify(message_id: str, config: str | None) -> None:
             thinking_level=cfg.llm_thinking_level,
             max_tokens=cfg.llm_max_tokens,
             user_preferences=cfg.prompt_user_preferences,
+            debug_callback=debug_tool_callback,
         )
 
         # Show email details
@@ -1102,7 +1211,17 @@ def debug_classify(message_id: str, config: str | None) -> None:
         # Show prompt preview
         exclusions_text = cfg.prompt_exclusions
         if cfg.prompt_user_preferences.strip():
-            exclusions_text += "\n\nUser Preferences:\n" + cfg.prompt_user_preferences
+            exclusions_text += "\n\n" + "=" * 60
+            exclusions_text += "\nIMPORTANT USER PREFERENCES (MUST BE FOLLOWED):"
+            exclusions_text += "\n" + "=" * 60
+            exclusions_text += "\n" + cfg.prompt_user_preferences
+            exclusions_text += "\n" + "=" * 60
+            exclusions_text += (
+                "\n\nThese preferences override the general marketing criteria above."
+            )
+            exclusions_text += (
+                "\nIf an email matches a user preference to KEEP, it is NOT marketing."
+            )
 
         prompt_preview = f"""Marketing Criteria:
 {cfg.prompt_marketing_criteria}
@@ -1110,8 +1229,16 @@ def debug_classify(message_id: str, config: str | None) -> None:
 Exclusions:
 {exclusions_text}
 
-Email Subject: {subject}
-Email From: {from_address}
+Email Metadata:
+Subject: {subject}
+From: {from_address}
+To: {email_headers["to"] or "(not provided)"}
+Reply-To: {email_headers["reply_to"] or "(not provided)"}
+Sender: {email_headers["sender"] or "(not provided)"}
+List-Unsubscribe: {email_headers["list_unsubscribe"] or "(not provided)"}
+List-Unsubscribe-Post: {email_headers["list_unsubscribe_post"] or "(not provided)"}
+Other List-* Headers: {email_headers["list_headers"] or "(none)"}
+
 Email Body (first 2000 chars): {body[:2000]}"""
         console.print(Panel(prompt_preview, title="Prompt Preview", border_style="blue"))
         console.print()
@@ -1125,7 +1252,19 @@ Email Body (first 2000 chars): {body[:2000]}"""
             transient=True,
         ) as progress:
             progress.add_task("Classifying...", total=None)
-            result = classifier.classify_sync(subject, from_address, body)
+            result = classifier.classify_sync(
+                subject=subject,
+                from_address=from_address,
+                body=body,
+                to_address=email_headers["to"],
+                reply_to=email_headers["reply_to"],
+                sender=email_headers["sender"],
+                list_unsubscribe=email_headers["list_unsubscribe"],
+                list_unsubscribe_post=email_headers["list_unsubscribe_post"],
+                list_headers=email_headers["list_headers"],
+                all_headers=all_headers_list,
+                full_body=body,
+            )
 
         # Show result
         console.print()

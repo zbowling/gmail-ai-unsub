@@ -287,6 +287,35 @@ Key configuration sections:
    - Uses browser automation with AI vision for complex pages
    - Updates labels based on success/failure
 
+## Known Issues
+
+Some email senders use unsubscribe mechanisms that are difficult to automate. The following domains have been identified as problematic:
+
+### High Failure Rate Domains
+
+- **manage.kmail-lists.com** (4+ failures) - Complex unsubscribe flows requiring multiple steps
+- **www.linkedin.com** (3+ failures) - Requires login or has complex preference centers
+- **click.emails.zappos.com** (2+ failures) - JWT-based unsubscribe links that may expire
+- **us.engagingnetworks.app** (2+ failures) - Multi-step unsubscribe process
+- **actionnetwork.org** (2+ failures) - Some unsubscribe links return 404 errors
+
+### Other Problematic Domains
+
+- **link.theatlantic.com** - Complex preference management
+- **www.tiktok.com** - Requires account verification
+- **unsubscribe.kit.com** - Token-based links that may be single-use
+- **data.em.officedepot.com** - URL encoding issues with unsubscribe links
+- **click.twitch.tv** - Complex preference center
+
+### Workarounds
+
+For these senders, you may need to:
+1. Manually unsubscribe through their website
+2. Use Gmail's built-in "Unsubscribe" button (if available)
+3. Mark emails as spam (Gmail will learn to filter them)
+
+We're actively working on improving browser automation to handle these cases. If you encounter issues with specific senders, please [open an issue](https://github.com/zbowling/gmail-ai-unsub/issues) with details.
+
 ## Supported LLM Providers
 
 - **Google Gemini**:
