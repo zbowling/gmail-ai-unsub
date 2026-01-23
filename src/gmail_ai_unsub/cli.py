@@ -191,6 +191,7 @@ def scan(
             max_tokens=cfg.llm_max_tokens,
             user_preferences=cfg.prompt_user_preferences,
             debug_callback=debug_tool_callback if debug else None,
+            base_url=cfg.llm_base_url,
         )
 
         # Build query for emails in the specified time range
@@ -1192,6 +1193,7 @@ def debug_classify(message_id: str, config: str | None) -> None:
             max_tokens=cfg.llm_max_tokens,
             user_preferences=cfg.prompt_user_preferences,
             debug_callback=debug_tool_callback,
+            base_url=cfg.llm_base_url,
         )
 
         # Show email details

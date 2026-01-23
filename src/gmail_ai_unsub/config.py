@@ -121,6 +121,18 @@ class Config:
         return self._get("llm", "max_tokens", default=None)
 
     @property
+    def llm_base_url(self) -> str | None:
+        """Custom base URL for the LLM API.
+
+        Use this to connect to a local proxy (e.g., CLIProxyAPI for Claude Max subscription)
+        or alternative API endpoints.
+
+        Example: "http://127.0.0.1:65378/v1" for local CLIProxyAPI proxy.
+        Returns None to use the provider's default endpoint.
+        """
+        return self._get("llm", "base_url", default=None)
+
+    @property
     def llm_api_key(self) -> str:
         """Get API key from config file or environment variable.
 

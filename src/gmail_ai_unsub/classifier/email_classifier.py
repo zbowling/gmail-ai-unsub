@@ -710,6 +710,7 @@ def create_classifier(
     max_tokens: int | None = None,
     user_preferences: str = "",
     debug_callback: ToolCallLogger | None = None,
+    base_url: str | None = None,
 ) -> EmailClassifier:
     """Create an EmailClassifier with the specified LLM provider.
 
@@ -767,6 +768,9 @@ def create_classifier(
 
         if max_tokens is not None:
             anthropic_kwargs["max_tokens"] = max_tokens
+
+        if base_url is not None:
+            anthropic_kwargs["base_url"] = base_url
 
         llm = ChatAnthropic(**anthropic_kwargs)
 
