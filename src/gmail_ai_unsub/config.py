@@ -286,3 +286,12 @@ class Config:
                 return api_key
 
         return None  # Will fall back to llm_api_key
+
+    @property
+    def browser_base_url(self) -> str | None:
+        """Base URL for browser automation model API.
+
+        Used for custom API endpoints (e.g., local proxy).
+        None uses the same base_url as classification (llm.base_url).
+        """
+        return self._get("browser", "base_url", default=None)

@@ -35,6 +35,7 @@ def create_browser_llm(config: Config) -> Any:
     provider = config.browser_provider or config.llm_provider
     model = config.browser_model or config.llm_model
     api_key = config.browser_api_key or config.llm_api_key
+    base_url = config.browser_base_url or config.llm_base_url
 
     # Browser-Use's own optimized model (fastest option)
     # See: https://browser-use.com/posts/speed-matters
@@ -89,7 +90,11 @@ def create_browser_llm(config: Config) -> Any:
             # Default to sonnet for good balance of speed/quality
             browser_model = "claude-4-5-sonnet"
 
-        return ChatAnthropic(model=browser_model)
+        # Pass base_url if configured (e.g., for local proxy)
+        kwargs = {"model": browser_model}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return ChatAnthropic(**kwargs)
 
     # OpenAI GPT-5
     if provider == "openai":
