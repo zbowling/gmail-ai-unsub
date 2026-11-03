@@ -22,8 +22,10 @@ See: https://developers.google.com/workspace/gmail/api/auth/scopes
 """
 
 import os
+import sys
 from pathlib import Path
 
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -134,8 +136,20 @@ def get_credentials(
     # If there are no (valid) credentials available, let the user log in
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+            except RefreshError as e:
+                # Transient failures (network, 5xx) shouldn't force a re-login
+                if e.retryable:
+                    raise
+                # e.g. invalid_grant: token expired or revoked, so authorize again
+                print(
+                    f"Saved Gmail token is no longer valid ({e}); re-authorizing...",
+                    file=sys.stderr,
+                )
+                creds = None
+
+        if not creds or not creds.valid:
             # Determine which credentials to use
             creds_path = None
             if credentials_file:
