@@ -17,6 +17,7 @@ from typing import Any
 from browser_use import Agent
 
 from gmail_ai_unsub.config import Config
+from gmail_ai_unsub.unsubscribe.llm_errors import LLMUnavailableError, is_fatal_llm_error
 
 
 def create_browser_llm(config: Config) -> Any:
@@ -301,9 +302,20 @@ The goal is to unsubscribe from ALL emails from this sender, not just specific c
                     )
                     if msg and not success:
                         error_msg = f"Browser automation did not complete successfully: {msg}"
+            if result is not None:
+                # browser-use records LLM/API failures here, not in all_results
+                step_errors = [str(e) for e in result.errors() if e]
+                if step_errors:
+                    error_msg = f"Browser error: {step_errors[-1]}"
+                    if is_fatal_llm_error(error_msg):
+                        raise LLMUnavailableError(step_errors[-1])
             return (False, error_msg)
 
+    except LLMUnavailableError:
+        raise
     except Exception as e:
+        if is_fatal_llm_error(str(e)):
+            raise LLMUnavailableError(str(e)) from e
         return (False, f"Browser automation failed: {str(e)}")
 
     finally:
