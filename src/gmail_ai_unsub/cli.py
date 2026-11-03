@@ -21,6 +21,7 @@ from gmail_ai_unsub.unsubscribe.extractor import (
     extract_unsubscribe_from_body,
     parse_email_body,
 )
+from gmail_ai_unsub.unsubscribe.llm_errors import LLMUnavailableError
 
 console = Console()
 
@@ -774,12 +775,13 @@ def unsubscribe(label: str | None, headless: bool | None, yes: bool, config: str
                 error = None
                 message_full = client.get_message(message_id, format="full")
 
-                # Strategy: Attack from all fronts!
+                # Strategy: cheapest documented method first, browser as fallback
                 # 1. Send mailto email if available (RFC 8058)
                 # 2. Try RFC 8058 POST if URL supports one-click
-                # 3. Always use browser automation for URLs (verifies/completes the process)
+                # 3. Fall back to browser automation for URLs if neither worked
 
                 mailto_success = False
+                post_success = False
 
                 # Step 1: Try mailto unsubscribe (if available)
                 if unsub_link.mailto_address and cfg.unsubscribe_enable_mailto:
@@ -843,9 +845,12 @@ def unsubscribe(label: str | None, headless: bool | None, yes: bool, config: str
                             else:
                                 console.print("[dim]✗ POST failed (will try browser)[/dim]")
 
-                # Step 3: Always use browser automation for URLs
-                # This verifies the unsubscribe worked and handles any additional steps
-                if unsub_link.link_url:
+                # Step 3: Browser automation for URLs, only if mailto/POST didn't succeed
+                if mailto_success or post_success:
+                    # A sent unsubscribe email or an accepted one-click POST is the
+                    # sender's documented unsubscribe, no browser (LLM call) needed
+                    success = True
+                elif unsub_link.link_url:
                     from gmail_ai_unsub.unsubscribe.extractor import (
                         extract_all_unsubscribe_urls_from_body,
                         test_url_accessibility,
@@ -931,9 +936,6 @@ def unsubscribe(label: str | None, headless: bool | None, yes: bool, config: str
                         # Tried all URLs, none worked
                         if len(urls_to_try) > 1:
                             console.print("[red]✗ All unsubscribe URLs failed[/red]")
-                elif unsub_link.mailto_address:
-                    # Only mailto available - consider it success if email was sent
-                    success = mailto_success
 
                 # Update labels and status
                 if success:
@@ -954,9 +956,22 @@ def unsubscribe(label: str | None, headless: bool | None, yes: bool, config: str
                         add_label_ids=[failed_label_id],
                         remove_label_ids=[marketing_label_id],
                     )
-                    storage.update_link_status(message_id, "failed", "Unsubscribe attempt failed")
+                    storage.update_link_status(
+                        message_id, "failed", error or "Unsubscribe attempt failed"
+                    )
                     failed_count += 1
 
+            except LLMUnavailableError as e:
+                # Every remaining email would fail the same way, and relabeling them
+                # as failed would take them out of the queue, so stop and leave this
+                # one untouched
+                console.print(f"[red]✗ Browser LLM unavailable: {e}[/red]")
+                console.print(
+                    "[yellow]Stopping. Fix the LLM provider (billing/API key) and re-run; "
+                    "this email and the rest are unchanged.[/yellow]"
+                )
+                console.print()
+                break
             except Exception as e:
                 console.print(f"[red]✗ Error: {e}[/red]")
                 failed_count += 1
